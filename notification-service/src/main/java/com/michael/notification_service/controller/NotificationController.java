@@ -18,9 +18,10 @@ public class NotificationController {
 
     @PostMapping
     public ResponseEntity<Notification> create(@RequestBody CreateNotificationRequest dto) {
-        Notification created = svc.createAndSend(dto);
+        Notification created = svc.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
+
 
     @GetMapping("/{id}/status")
     public ResponseEntity<String> status(@PathVariable Long id) {

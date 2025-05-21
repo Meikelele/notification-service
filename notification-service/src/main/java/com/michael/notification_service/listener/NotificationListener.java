@@ -20,23 +20,15 @@ public class NotificationListener {
     @RabbitListener(queues = RabbitConfig.QUEUE)
     @Transactional
     public void onMessage(Notification incoming) {
-        Long id = incoming.getId();
-        Optional<Notification> opt = repo.findById(id);
-        if (opt.isEmpty()) {
-            return;
-        }
-        Notification n = opt.get();
+        Notification n = repo.findById(incoming.getId()).orElse(null);
+        if (n == null) return;
         try {
-            // SYMULACJA WYSYLKI
-            System.out.printf("Wysyłam %s na %s: %s%n",
-                    n.getChannel(), n.getRecipient(), n.getContent());
-
+            // tu wysyłasz e-mail/logujesz
+//            Thread.sleep(3000);
             n.setStatus("SENT");
-            repo.save(n);
-
-        } catch (Exception ex) {
+        } catch (Exception e) {
             n.setStatus("FAILED");
-            repo.save(n);
         }
+        repo.save(n);
     }
 }
