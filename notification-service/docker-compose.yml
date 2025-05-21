@@ -2,19 +2,37 @@ version: '3.8'
 
 services:
   db:
+    container_name: notifications-db
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: notifications
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - notifications-db-data:/var/lib/postgresql/data
 
   rabbitmq:
+    container_name: notifications-rabbitmq
     image: rabbitmq:3-management-alpine
+    restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: notifications-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+
+volumes:
+  notifications-db-data:
