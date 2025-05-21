@@ -1,4 +1,3 @@
-// src/main/java/com/michael/notification_service/listener/NotificationListener.java
 package com.michael.notification_service.listener;
 
 import com.michael.notification_service.config.RabbitConfig;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationListener {
-
     private final NotificationRepository repo;
     private final MeterRegistry registry;
 
@@ -35,7 +33,6 @@ public class NotificationListener {
     public void onMessage(Notification incoming) {
         Notification n = repo.findById(incoming.getId()).orElseThrow();
         try {
-            // … tu Twoja logika wysyłki …
             n.setStatus("SENT");
             repo.save(n);
 
@@ -52,8 +49,7 @@ public class NotificationListener {
                     .tag("status", "FAILED")
                     .register(registry)
                     .increment();
-
-            throw e;  // wymusza retry
+            throw e;
         }
     }
 
@@ -63,13 +59,11 @@ public class NotificationListener {
         n.setStatus("FAILED");
         repo.save(n);
 
-        // dodajemy metrykę też tutaj, żeby liczyć ostateczne porażki
         Counter.builder("notifications.count")
                 .tag("status", "FAILED")
                 .register(registry)
                 .increment();
 
-        // kierujemy wiadomość na DLQ
         throw new AmqpRejectAndDontRequeueException("Retries exhausted", e);
     }
 }

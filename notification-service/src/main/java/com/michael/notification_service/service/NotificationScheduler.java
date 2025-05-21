@@ -1,4 +1,3 @@
-// src/main/java/com/michael/notification_service/service/NotificationScheduler.java
 package com.michael.notification_service.service;
 
 import com.michael.notification_service.entity.Notification;
@@ -16,34 +15,24 @@ import java.util.List;
 
 @Service
 public class NotificationScheduler {
-
     private final NotificationRepository repo;
     private final RabbitTemplate rabbit;
     private final MeterRegistry registry;
 
-    // !!! Dokładnie taka kolejność parametrów i przypisania
-    public NotificationScheduler(NotificationRepository repo,
-                                 RabbitTemplate rabbit,
-                                 MeterRegistry registry) {
+    public NotificationScheduler(NotificationRepository repo, RabbitTemplate rabbit, MeterRegistry registry) {
         this.repo = repo;
         this.rabbit = rabbit;
         this.registry = registry;
     }
-
     @Scheduled(initialDelay = 10_000, fixedRate = 10_000)
     @Transactional
     public void dispatchDueNotifications() {
-        List<Notification> due = repo.findByStatusAndSendAtBefore("PENDING", LocalDateTime.now());
-        for (Notification n : due) {
-            rabbit.convertAndSend(
-                    RabbitConfig.EXCHANGE,
-                    RabbitConfig.ROUTING_KEY,
-                    n
-            );
+
+        List<Notification> due = repo.findByStatusAndSendPriority("PENDING", LocalDateTime.now());
+        for (Notification n : due) {rabbit.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY, n);
             n.setStatus("IN_QUEUE");
             repo.save(n);
 
-            // metryka po zapisaniu stanu
             Counter.builder("notifications.count")
                     .tag("status", "IN_QUEUE")
                     .register(registry)

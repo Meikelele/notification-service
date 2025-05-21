@@ -10,7 +10,6 @@ import java.util.Map;
 class MetricsController {
     private final MeterRegistry reg;
     public MetricsController(MeterRegistry reg) { this.reg = reg; }
-
     @GetMapping("/metrics")
     public Map<String, Object> metrics() {
         return Map.of(
